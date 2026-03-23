@@ -1,0 +1,21 @@
+name: Repo A Reusable Workflow
+
+# 'workflow_call' is the magic trigger that allows Repo B to run this
+on:
+  workflow_call:
+    inputs:
+      greeting:
+        description: 'A message passed from Repo B'
+        required: true
+        type: string
+
+jobs:
+  run-repo-a-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print the greeting
+        run: |
+          echo "========================================"
+          echo "🚀 SUCCESS! Running a workflow inside Repo A!"
+          echo "📨 Message from Repo B: ${{ inputs.greeting }}"
+          echo "========================================"
