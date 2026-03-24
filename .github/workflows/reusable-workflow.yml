@@ -1,4 +1,3 @@
-# .github/workflows/reusable-deployment.yml (in Repo A)
 name: Reusable Deployment Workflow
 
 on:
@@ -8,8 +7,33 @@ on:
         required: true
 
 jobs:
-  execute-deployment:
+  # ----------------------------------------------------------------
+  # JOB 1: An example prep job (e.g., validating configs or linting)
+  # ----------------------------------------------------------------
+  validate-configs:
+    name: Validate Configurations
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo B (Configs)
+        uses: actions/checkout@v4
+
+      - name: Verify Config File Exists
+        run: |
+          echo "🔍 Checking for config.yaml..."
+          if [ -f "config.yaml" ]; then
+            echo "✅ config.yaml is present. Validation passed!"
+          else
+            echo "❌ config.yaml is missing. Failing the job."
+            exit 1
+          fi
+
+  # ----------------------------------------------------------------
+  # JOB 2: Your main deployment job
+  # ----------------------------------------------------------------
+  execute-deployment:
+    name: Execute Deployment Script
+    runs-on: ubuntu-latest
+    needs: validate-configs # This tells GitHub to wait for Job 1 to finish successfully
     steps:
       # CHECKOUT 1: Grabs Repo B (Puts config.yaml in the root)
       - name: Checkout Repo B (Configs)
@@ -23,20 +47,7 @@ jobs:
           path: repo-a-tools
           token: ${{ secrets.REPO_A_ACCESS_TOKEN }}
 
-      # NEW STEP: Print the directory structure to the logs!
-      - name: Show Folder Structure
-        run: |
-          echo "📁 Here is exactly what the runner's folders look like right now:"
-          tree -a -L 3
-
-      # Run the script
-      - name: Run Deployment Script
-        run: |
-          chmod +x ./repo-a-tools/deploy.sh
-          ./repo-a-tools/deploy.sh
-
-      # (Previous steps: Checkout Repo B, then Checkout Repo A)
-
+      # Print the directory structure to the logs
       - name: Print File Structure 📂
         run: |
           echo "Current working directory is: $(pwd)"
@@ -45,3 +56,9 @@ jobs:
           # -a shows hidden files, -L 3 limits depth, -I '.git' hides the massive git folders
           tree -a -L 3 -I '.git'
           echo "----------------------------------------"
+
+      # Run the script
+      - name: Run Deployment Script
+        run: |
+          chmod +x ./repo-a-tools/deploy.sh
+          ./repo-a-tools/deploy.sh
