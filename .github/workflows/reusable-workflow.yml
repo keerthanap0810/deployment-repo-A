@@ -34,3 +34,14 @@ jobs:
         run: |
           chmod +x ./repo-a-tools/deploy.sh
           ./repo-a-tools/deploy.sh
+
+      # (Previous steps: Checkout Repo B, then Checkout Repo A)
+
+      - name: Print File Structure 📂
+        run: |
+          echo "Current working directory is: $(pwd)"
+          echo "Here is the combined folder structure:"
+          echo "----------------------------------------"
+          # -a shows hidden files, -L 3 limits depth, -I '.git' hides the massive git folders
+          tree -a -L 3 -I '.git'
+          echo "----------------------------------------"
