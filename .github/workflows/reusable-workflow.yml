@@ -1,38 +1,36 @@
-name: Repo A Reusable Workflow
+# .github/workflows/reusable-deployment.yml (in Repo A)
+name: Reusable Deployment Workflow
 
 on:
   workflow_call:
-    inputs:
-      greeting:
-        description: 'A message passed from Repo B'
-        required: true
-        type: string
-    # We must declare that this workflow expects a secret to be passed to it
     secrets:
       REPO_A_ACCESS_TOKEN:
         required: true
 
 jobs:
-  run-repo-a-job:
+  execute-deployment:
     runs-on: ubuntu-latest
     steps:
-      - name: Print the greeting
-        run: |
-          echo "📨 Message from Repo B: ${{ inputs.greeting }}"
+      # CHECKOUT 1: Grabs Repo B (Puts config.yaml in the root)
+      - name: Checkout Repo B (Configs)
+        uses: actions/checkout@v4
 
-      # Step 1: Check out Repo A's code so we have access to hello.sh
-      - name: Checkout Repo A
+      # CHECKOUT 2: Grabs Repo A (Puts scripts into the 'repo-a-tools' folder)
+      - name: Checkout Repo A (Scripts)
         uses: actions/checkout@v4
         with:
           repository: keerthanap0810/deployment-repo-A
-          # Using the secret passed from Repo B
+          path: repo-a-tools
           token: ${{ secrets.REPO_A_ACCESS_TOKEN }}
 
-      # Step 2: Make the script executable and run it
-      - name: Execute hello.sh
+      # NEW STEP: Print the directory structure to the logs!
+      - name: Show Folder Structure
         run: |
-          echo "========================================"
-          echo "⚙️ Executing script..."
-          chmod +x ./hello.sh
-          ./hello.sh
-          echo "========================================"
+          echo "📁 Here is exactly what the runner's folders look like right now:"
+          tree -a -L 3
+
+      # Run the script
+      - name: Run Deployment Script
+        run: |
+          chmod +x ./repo-a-tools/deploy.sh
+          ./repo-a-tools/deploy.sh
